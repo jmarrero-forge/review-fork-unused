@@ -1,3 +1,11 @@
+# An agent's review of every pull request here, through jmarrero-forge/
+# actions' jmarrero-review.yml pinned by commit (agentic-job's
+# docs/review.md, "Another repository"): agentic-job's own review.yml joins
+# cgwalters' tailnet, which has no entry for jmarrero. The wrapper reads its
+# bounds (workflow/review.toml, workflow/review-command.toml) and its task
+# (workflow/review.md) from this repository's base branch.
+# Off until the repository variable AGENT_REVIEW names the reviewing
+# agent: the wrapper has no fallback agent or broker.
 name: review
 on:
   # The base's reusable workflow runs; no step here checks out or runs the
@@ -10,14 +18,13 @@ permissions: {}
 jobs:
   review:
     if: >-
-      github.event_name == 'pull_request_target' ||
-      (github.event.issue.pull_request && startsWith(github.event.comment.body, '/review'))
+      vars.AGENT_REVIEW != '' && (github.event_name == 'pull_request_target' ||
+      (github.event.issue.pull_request && startsWith(github.event.comment.body, '/review')))
     # Base-owned policy; the head is fetched only as data inside the sandbox.
-    # agentic-job is referenced by release tag: following main failed runs that
-    # spanned a merge there (cgwalters-forge/tracker#544). Newer tags are
-    # taken by hand. The permissions below go to whatever that tag names, so
-    # agentic-job's release process is part of this gate.
-    uses: cgwalters-forge/agentic-job/.github/workflows/review.yml@v0.1.0
+    # de62d4a is on jmarrero-forge/actions main, the commit the broker's
+    # run-token policy (atomic-setup) names for this repository; move it
+    # together with that.
+    uses: jmarrero-forge/actions/.github/workflows/jmarrero-review.yml@de62d4a1cd93433538c59cf8d18bb1dbe39ce180
     permissions:
       contents: read
       issues: read
