@@ -16,7 +16,7 @@ import { fixture, installDom } from "./helpers.ts";
 
 const win = installDom();
 const render = createRenderer(win as unknown as Parameters<typeof createRenderer>[0]);
-const TRACKER = "https://github.com/cgwalters-forge/tracker/issues";
+const TRACKER = "https://github.com/jmarrero-forge/tracker/issues";
 const text = (el: Element | null | undefined) => el?.textContent?.replace(/\s+/g, " ").trim() ?? "";
 
 function hooks(open: SectionId[] = [], log: string[] = []): HomeHooks {
@@ -31,7 +31,7 @@ function hooks(open: SectionId[] = [], log: string[] = []): HomeHooks {
 function tracked(nodeId: string, number: number, over: Partial<Item> = {}): Item {
   return {
     id: 0, nodeId, kind: "issue", title: nodeId, body: "", why: "", branch: [], gist: [], labels: [], status: "Needs human",
-    url: `${TRACKER}/${number}`, ref: { owner: "cgwalters-forge", repo: "tracker", number }, state: "open", author: "cgwalters-bot", assignees: ["cgwalters"], ...over,
+    url: `${TRACKER}/${number}`, ref: { owner: "jmarrero-forge", repo: "tracker", number }, state: "open", author: "jmarrero-bot", assignees: ["jmarrero"], ...over,
   };
 }
 
@@ -43,7 +43,7 @@ function questions(n: number): Item[] {
 }
 
 const needsHooks = (sent: unknown[] = []) => ({
-  login: "cgwalters",
+  login: "jmarrero",
   now: Date.parse("2026-02-01T00:00:00Z"),
   render,
   labelOf: () => undefined,
@@ -160,8 +160,8 @@ describe("operator dashboard", () => {
   it("shows promotion actions once and keeps approved reruns, re-signs and context in Watching with states and reasons", () => {
     const home = homeSkeleton(hooks());
     const entries: Entry[] = ["rerun", "resign", "read", "promote", "write", "sent"].map((name, i) => {
-      const pr = { ref: { owner: "cgwalters-forge", repo: "widget", number: i + 1 }, url: `https://github.com/cgwalters-forge/widget/pull/${i + 1}`, title: name, body: ["promote", "write", "sent"].includes(name) ? `<!-- bot-meta -->\n- Upstream: \`upstream/widget\`\n- Contribution policy: \`${name === "write" ? "human-text" : "ai-ok"}\`\n<!-- /bot-meta -->` : "", author: "cgwalters-bot", createdAt: "", updatedAt: "", draft: true };
-      return { key: `pr:${i}`, kind: "pr", title: name, where: `widget#${i + 1}`, href: `#pr/cgwalters-forge/widget/${i + 1}`, pr, verdict: { state: name === "sent" ? "promoted" : "approved" }, wait: { reasons: name === "rerun" ? ["rerun"] : name === "resign" ? ["resign"] : [], onBot: false } };
+      const pr = { ref: { owner: "jmarrero-forge", repo: "widget", number: i + 1 }, url: `https://github.com/jmarrero-forge/widget/pull/${i + 1}`, title: name, body: ["promote", "write", "sent"].includes(name) ? `<!-- bot-meta -->\n- Upstream: \`upstream/widget\`\n- Contribution policy: \`${name === "write" ? "human-text" : "ai-ok"}\`\n<!-- /bot-meta -->` : "", author: "jmarrero-bot", createdAt: "", updatedAt: "", draft: true };
+      return { key: `pr:${i}`, kind: "pr", title: name, where: `widget#${i + 1}`, href: `#pr/jmarrero-forge/widget/${i + 1}`, pr, verdict: { state: name === "sent" ? "promoted" : "approved" }, wait: { reasons: name === "rerun" ? ["rerun"] : name === "resign" ? ["resign"] : [], onBot: false } };
     });
     const needs = buildNeeds({ entries });
     assert.equal(needs.find((n) => n.action === "promote")?.href, entries[3]?.pr?.url);
@@ -196,6 +196,7 @@ describe("operator dashboard", () => {
   });
 
   it("puts Decisions before Status and refreshes its age without resetting expansion", () => {
+    // jmarrero-forge runs no Coordinator workflow, so Status is never marked stale.
     const home = homeSkeleton(hooks());
     assert.ok([...home.el.children].indexOf(home.sections.needs.details) < [...home.el.children].indexOf(home.slots.status));
     const status = { body: "First paragraph\n\nSecond paragraph", createdAt: "2026-10-15T10:00:00Z" };
@@ -204,7 +205,8 @@ describe("operator dashboard", () => {
     assert.equal(home.slots.status.querySelector(".status-age.hot"), null);
     home.slots.status.querySelector<HTMLButtonElement>("button")!.click();
     fillStatus(home, status, render, undefined, Date.parse("2026-10-15T11:01:00Z"));
-    assert.match(text(home.slots.status.querySelector(".status-age.hot")), /61 min ago · stale/);
+    assert.match(text(home.slots.status.querySelector(".status-age")), /61 min ago$/);
+    assert.equal(home.slots.status.querySelector(".status-age.hot"), null);
     assert.equal(home.slots.status.querySelector("button")?.getAttribute("aria-expanded"), "true");
     fillStatus(home, { ...status, createdAt: "invalid" }, render);
     assert.match(text(home.slots.status), /Status age unknown/);
@@ -423,7 +425,7 @@ describe("the sections' fills", () => {
     const entries = buildEntries([...questions(7), tracked("PVTI_rev", 200, { labels: ["review"], body: `Blocks: ${TRACKER}/9\nAsk: look\n` })], [], new Map(), true);
     const waiting = fillNeeds(home, buildNeeds({ entries }), needsHooks(), entries);
     assert.equal(waiting, 7);
-    assert.equal(text(count(home, "needs")), "document + 7 other asks");
+    assert.equal(text(count(home, "needs")), "7");
     assert.ok(count(home, "needs").classList.contains("hot"));
     const rows = [...home.slots.needs.querySelectorAll<HTMLElement>(".row")];
     assert.equal(rows.length, 7);
@@ -432,11 +434,12 @@ describe("the sections' fills", () => {
     assert.equal(rows.filter((r) => r.querySelector("form.answer")).length, 7, "the review row has no form");
   });
 
-  it("points to the document when no legacy asks wait on him", () => {
+  it("says all caught up when no legacy asks wait on him", () => {
+    // jmarrero-forge has no decisions document to point to.
     const home = mounted();
     assert.equal(fillNeeds(home, [], needsHooks()), 0);
-    assert.match(text(home.slots.needs), /No other asks. See the decisions document above\./);
-    assert.equal(text(count(home, "needs")), "document + 0 other asks");
+    assert.match(text(home.slots.needs), /All caught up: nothing needs you right now\./);
+    assert.equal(text(count(home, "needs")), "0");
     assert.ok(!count(home, "needs").classList.contains("hot"));
   });
 

@@ -24,7 +24,7 @@ const text = (el: Element | null | undefined) => el?.textContent?.replace(/\s+/g
 describe("triageView", () => {
   const items: Item[] = [
     item(1, { Status: "Needs human", Priority: "P0", Theme: "composefs-stable", Verdict: "keep" }, EVIL),
-    item(2, { Status: "Todo", Priority: "P1", Theme: "composefs-stable", Verdict: "merge", "Verdict target": "https://github.com/cgwalters-forge/tracker/issues/33" }),
+    item(2, { Status: "Todo", Priority: "P1", Theme: "composefs-stable", Verdict: "merge", "Verdict target": "https://github.com/jmarrero-forge/tracker/issues/33" }),
     item(3, { Status: "Todo", Priority: "P2", Theme: "harness", Verdict: "close", "Verdict target": "javascript:alert(1)" }),
     item(4, { Status: "Todo" }),
   ];
@@ -52,7 +52,7 @@ describe("triageView", () => {
     const view = triageView({ items, missing: [] }, "all", hooks());
     const rows = [...view.querySelectorAll(".themes .tri-item")];
     assert.equal(text(rows[1]?.querySelector(".verdict")), "merge");
-    assert.equal(rows[1]?.querySelector(".tri-meta .tag a")?.getAttribute("href"), "https://github.com/cgwalters-forge/tracker/issues/33");
+    assert.equal(rows[1]?.querySelector(".tri-meta .tag a")?.getAttribute("href"), "https://github.com/jmarrero-forge/tracker/issues/33");
     assert.match(text(rows[1]), /→ tracker#33/);
     assert.equal(rows[2]?.querySelector(".tri-meta .tag a"), null);
   });

@@ -75,7 +75,7 @@ describe("parseQuestion", () => {
   const none = { blocks: undefined, ask: undefined, options: [], recommendation: undefined, problem: undefined };
   const B = "Blocks: https://github.com/o/r/issues/1";
   const full = [
-    "Blocks: https://github.com/cgwalters-forge/tracker/issues/12",
+    "Blocks: https://github.com/jmarrero-forge/tracker/issues/12",
     "The stable format needs a name.",
     "",
     "Q: Which prefix?",
@@ -89,7 +89,7 @@ describe("parseQuestion", () => {
       "the full format, recommendation first",
       full,
       {
-        blocks: "https://github.com/cgwalters-forge/tracker/issues/12",
+        blocks: "https://github.com/jmarrero-forge/tracker/issues/12",
         ask: "Which prefix?",
         options: ["A:org.example*", "B:io.example (see below)"],
         recommendation: "A, because it is registered",
@@ -134,7 +134,7 @@ describe("parseQuestion", () => {
         "",
         "Recommended: A. Nothing depends on it.",
         "",
-        "Answer with a comment on this issue: an option's letter alone on the first line (e.g. `B`), optionally followed by your own text, or just text. Only comments by the cgwalters login count.",
+        "Answer with a comment on this issue: an option's letter alone on the first line (e.g. `B`), optionally followed by your own text, or just text. Only comments by the jmarrero login count.",
       ].join("\n"),
       { blocks: "https://github.com/o/r/issues/100", options: ["A:Close it (the bot closes it with a one-line note).*", "B:Keep it open."], recommendation: "A. Nothing depends on it." },
     ],
@@ -151,7 +151,7 @@ describe("parseQuestion", () => {
         "A) Drop it",
         "B) Keep it",
         "",
-        "Answer with a comment on this issue: an option's letter alone on the first line (e.g. `B`), optionally followed by your own text, or just text. Only comments by the cgwalters login count.",
+        "Answer with a comment on this issue: an option's letter alone on the first line (e.g. `B`), optionally followed by your own text, or just text. Only comments by the jmarrero login count.",
       ].join("\n"),
       { blocks: "https://github.com/o/r/pull/2470", ask: "Drop commit 3 (which has no reproducer)?", options: ["A:Drop it", "B:Keep it"] },
     ],

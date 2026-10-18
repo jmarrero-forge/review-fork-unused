@@ -69,16 +69,16 @@ describe("captureRequest", () => {
 });
 
 describe("fileCapture", () => {
-  const ISSUES = `${API}/repos/cgwalters-forge/tracker/issues`;
-  const BOARD = `${API}/orgs/cgwalters-forge/projectsV2/1/items`;
-  const created = { body: { id: 991, number: 42, html_url: "https://github.com/cgwalters-forge/tracker/issues/42" }, status: 201 };
+  const ISSUES = `${API}/repos/jmarrero-forge/tracker/issues`;
+  const BOARD = `${API}/orgs/jmarrero-forge/projectsV2/1/items`;
+  const created = { body: { id: 991, number: 42, html_url: "https://github.com/jmarrero-forge/tracker/issues/42" }, status: 201 };
   const run = (issue: Scripted, board: Scripted) => {
     const { fetchImpl, calls } = scriptedFetch((m, url) => (m === "POST" && url === ISSUES ? issue : m === "POST" && url === BOARD ? board : undefined));
     return { calls, result: fileCapture(new GitHub(token, fetchImpl), draft({ title: "T", url: "https://github.com/o/r/issues/1" })) };
   };
   it("creates the labelled issue, then adds it to the board by id", async () => {
     const { calls, result } = run(created, { status: 201, body: { id: 5 } });
-    assert.deepEqual(await result, { number: 42, url: "https://github.com/cgwalters-forge/tracker/issues/42" });
+    assert.deepEqual(await result, { number: 42, url: "https://github.com/jmarrero-forge/tracker/issues/42" });
     assert.deepEqual(calls.map((c) => [c.method, c.url]), [["POST", ISSUES], ["POST", BOARD]]);
     assert.deepEqual(calls[0]?.body, { title: "T", body: "https://github.com/o/r/issues/1", labels: [CAPTURE_LABEL] });
     assert.deepEqual(calls[1]?.body, { type: "Issue", id: 991 });
@@ -146,7 +146,7 @@ describe("fileCapture", () => {
       const result = await fileCapture(new GitHub(token, fetchImpl), draft({ title: "T", priority }));
       assert.deepEqual(result, { number: 42, url: created.body.html_url });
       assert.equal(calls.filter((call) => call.url === ISSUES).length, 1);
-      assert.deepEqual((calls[2]?.body as { variables: unknown }).variables, { owner: "cgwalters-forge", number: 1, field: "Priority" });
+      assert.deepEqual((calls[2]?.body as { variables: unknown }).variables, { owner: "jmarrero-forge", number: 1, field: "Priority" });
       assert.deepEqual((calls[3]?.body as { variables: unknown }).variables, { project: "PVT_dynamic", item: "PVTI_created", field: fieldId, option: optionId });
       assert.match((calls[3]?.body as { query: string }).query, /updateProjectV2ItemFieldValue/);
       assert.equal(parseItem(rawBoardItem(87, { Priority: selected ?? "" })).priority, priority, "the queue reads the updated board field");
@@ -230,7 +230,7 @@ class MemStorage {
   }
 }
 const mem = () => new MemStorage() as unknown as Storage;
-const filedOk = async (): Promise<Filed> => ({ number: 42, url: "https://github.com/cgwalters-forge/tracker/issues/42" });
+const filedOk = async (): Promise<Filed> => ({ number: 42, url: "https://github.com/jmarrero-forge/tracker/issues/42" });
 
 describe("captureBar", () => {
   it("files the draft, shows Filed #N with a link, and clears the form and the draft", async () => {
@@ -242,7 +242,7 @@ describe("captureBar", () => {
     await m.submit();
     assert.deepEqual(sent, { title: "Look at X", body: "", url: "" });
     assert.equal(m.status().textContent, "Filed #42.");
-    assert.equal(m.status().querySelector("a")?.getAttribute("href"), "https://github.com/cgwalters-forge/tracker/issues/42");
+    assert.equal(m.status().querySelector("a")?.getAttribute("href"), "https://github.com/jmarrero-forge/tracker/issues/42");
     assert.ok(!m.status().classList.contains("warn"));
     assert.equal(m.q<HTMLInputElement>(".capture-title").value, "");
     assert.equal(storage.getItem(CAPTURE_DRAFT_KEY), null);
@@ -429,7 +429,7 @@ describe("captureBar", () => {
     assert.equal(loadDraft(storage).title, "T");
     assert.equal(m.q<HTMLButtonElement>("button[type=submit]").disabled, true);
     assert.match(m.status().textContent ?? "", /Filing outcome unknown/);
-    assert.equal(m.status().querySelector("a")?.getAttribute("href"), "https://github.com/cgwalters-forge/tracker/issues");
+    assert.equal(m.status().querySelector("a")?.getAttribute("href"), "https://github.com/jmarrero-forge/tracker/issues");
   });
   it("measures a long restored body and wrapped title only after visible mount without focus", () => {
     const storage = mem();

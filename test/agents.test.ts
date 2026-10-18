@@ -11,7 +11,7 @@ installDom();
 const MIN = 60_000;
 const NOW = Date.parse("2026-10-02T12:00:00Z");
 const ago = (ms: number) => new Date(NOW - ms).toISOString();
-const TRACKER = "https://github.com/cgwalters-forge/tracker/issues";
+const TRACKER = "https://github.com/jmarrero-forge/tracker/issues";
 
 function item(nodeId: string, url: string | undefined, over: Partial<Item> = {}): Item {
   const m = url ? /github\.com\/([^/]+)\/([^/]+)\/(?:issues|pull)\/(\d+)$/.exec(url) : null;
@@ -53,7 +53,7 @@ describe("isClaimed", () => {
 });
 
 describe("laneOf", () => {
-  const cases: [string | undefined, string][] = [["cgwalters-bot", "harness"], ["cgwalters-forge", "harness"], ["bootc-dev", "upstream"], [undefined, "unknown"]];
+  const cases: [string | undefined, string][] = [["jmarrero-bot", "harness"], ["jmarrero-forge", "harness"], ["bootc-dev", "upstream"], [undefined, "unknown"]];
   for (const [org, want] of cases) it(String(org), () => assert.equal(laneOf(org), want));
 });
 
@@ -65,8 +65,8 @@ describe("activeAgents", () => {
   const cases: [string, Item[], Heartbeat | null | undefined, Row[], number, [number, number, number], number][] = [
     [
       "a worker on a claimed item is one agent seen in both",
-      [item("PVTI_r", "https://github.com/cgwalters-forge/review/issues/31", { lead: "coordinator", org: "cgwalters-forge" })],
-      heartbeat([worker("strip", "https://github.com/cgwalters-forge/review/issues/31")]),
+      [item("PVTI_r", "https://github.com/jmarrero-forge/review/issues/31", { lead: "coordinator", org: "jmarrero-forge" })],
+      heartbeat([worker("strip", "https://github.com/jmarrero-forge/review/issues/31")]),
       [["strip", "both", "harness", "working", false]],
       1,
       [1, 0, 0],
@@ -83,8 +83,8 @@ describe("activeAgents", () => {
     ],
     [
       "a worker on an item that isn't claimed gets its lane from it, and the board adds nothing",
-      [item("PVTI_p4", "https://github.com/cgwalters-bot/praxis-credential-broker/pull/4", { status: "Draft", org: "cgwalters-bot" })],
-      heartbeat([worker("praxis", "https://github.com/cgwalters-bot/praxis-credential-broker/pull/4")]),
+      [item("PVTI_p4", "https://github.com/jmarrero-bot/praxis-credential-broker/pull/4", { status: "Draft", org: "jmarrero-bot" })],
+      heartbeat([worker("praxis", "https://github.com/jmarrero-bot/praxis-credential-broker/pull/4")]),
       [["praxis", "heartbeat", "harness", "working", false]],
       1,
       [1, 0, 0],
@@ -102,8 +102,8 @@ describe("activeAgents", () => {
     [
       "board claims without execution evidence stay unconfirmed",
       [
-        item("PVTI_wfc", "https://github.com/cgwalters-forge/gh-aw/issues/1", { lead: "wfc", priority: "P1", org: "cgwalters-forge" }),
-        item("PVTI_run", `${TRACKER}/58`, { run: "https://github.com/bootc-dev/cgwalters-devspace-sandbox/actions/runs/1", priority: "P0", org: "bootc-dev" }),
+        item("PVTI_wfc", "https://github.com/jmarrero-forge/gh-aw/issues/1", { lead: "wfc", priority: "P1", org: "jmarrero-forge" }),
+        item("PVTI_run", `${TRACKER}/58`, { run: "https://github.com/bootc-dev/jmarrero-devspace-sandbox/actions/runs/1", priority: "P0", org: "bootc-dev" }),
         item("PVTI_idle", `${TRACKER}/62`, { priority: "P0" }),
       ],
       heartbeat([]),
@@ -132,7 +132,7 @@ describe("activeAgents", () => {
     ],
     [
       "without a heartbeat, board claims are not execution",
-      [item("PVTI_wfc", "https://github.com/cgwalters-forge/gh-aw/issues/1", { lead: "wfc", org: "cgwalters-forge" })],
+      [item("PVTI_wfc", "https://github.com/jmarrero-forge/gh-aw/issues/1", { lead: "wfc", org: "jmarrero-forge" })],
       null,
       [["wfc", "board", "harness", "claimed", true]],
       0,
@@ -152,13 +152,13 @@ describe("activeAgents", () => {
   }
 
   it("carries the item's title, priority, Lead and Run onto the merged agent", () => {
-    const run = "https://github.com/bootc-dev/cgwalters-devspace-sandbox/actions/runs/7";
+    const run = "https://github.com/bootc-dev/jmarrero-devspace-sandbox/actions/runs/7";
     const board = [item("PVTI_t", `${TRACKER}/60`, { title: "safe outputs", priority: "P0", lead: "wfc", run })];
     const [a] = activeAgents(board, heartbeat([worker("w", `${TRACKER}/60`, { devspace: "ds-1" })]), NOW).agents;
     assert.deepEqual(a, {
       name: "w",
       itemUrl: `${TRACKER}/60`,
-      itemRef: "cgwalters-forge/tracker#60",
+      itemRef: "jmarrero-forge/tracker#60",
       status: "working",
       since: ago(30 * MIN),
       source: "both",
@@ -197,7 +197,7 @@ describe("activeAgents", () => {
   });
 
   it("reads Run from the board", () => {
-    const run = "https://github.com/bootc-dev/cgwalters-devspace-sandbox/actions/runs/7";
+    const run = "https://github.com/bootc-dev/jmarrero-devspace-sandbox/actions/runs/7";
     const parsed = parseItem({ id: 1, node_id: "PVTI_1", content_type: "Issue", fields: [{ name: "Run", value: { raw: ` ${run} ` } }, { name: "Status", value: { name: { raw: "In Progress" } } }] });
     assert.equal(parsed.run, run);
     assert.ok(isClaimed(parsed));
@@ -209,7 +209,7 @@ describe("activeAgents", () => {
 describe("agentsBody", () => {
   const text = (el: Element) => (el.textContent ?? "").replace(/\s+/g, " ");
   const board = [
-    item("PVTI_wfc", "https://github.com/cgwalters-forge/gh-aw/issues/1", { lead: "wfc", org: "cgwalters-forge", priority: "P1" }),
+    item("PVTI_wfc", "https://github.com/jmarrero-forge/gh-aw/issues/1", { lead: "wfc", org: "jmarrero-forge", priority: "P1" }),
     item("PVTI_t", `${TRACKER}/173`, { lead: "fsck", org: "bootc-dev" }),
   ];
 
@@ -226,7 +226,7 @@ describe("agentsBody", () => {
   });
 
   it("links a remote agent run to its run", () => {
-    const run = "https://github.com/bootc-dev/cgwalters-devspace-sandbox/actions/runs/123";
+    const run = "https://github.com/bootc-dev/jmarrero-devspace-sandbox/actions/runs/123";
     const el = agentsBody({ board: [item("PVTI_r", `${TRACKER}/9`, { lead: "remote", run })], local: heartbeat([]), warnings: [], at: NOW }, NOW);
     const a = el.querySelector<HTMLAnchorElement>(`.${AGENT_ROW_CLASS} a[href="${run}"]`);
     assert.equal(a?.textContent, "run ↗");

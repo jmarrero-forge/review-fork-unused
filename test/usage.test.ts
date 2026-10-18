@@ -28,7 +28,7 @@ describe("findUsage", () => {
         { name: "ops-v2", tokens: { input: 20, output: 60000, cacheRead: 4000000, cacheWrite: 150000 } },
         { name: "bootc-2482", tokens: { input: 10, output: 9000, cacheRead: 800000, cacheWrite: 90000 } },
       ],
-      commentUrl: "https://github.com/cgwalters-forge/bot-ops/issues/1#issuecomment-2",
+      commentUrl: "https://github.com/jmarrero-forge/bot-ops/issues/1#issuecomment-2",
     });
   });
   it("finds nothing among others' comments", () => assert.equal(findUsage(comments().slice(0, 1)), undefined));
@@ -123,7 +123,7 @@ describe("loadUsage", () => {
   };
   it("reads the private repository's issue", async () => {
     const { data, path } = await load(200);
-    assert.equal(path, "/repos/cgwalters-forge/bot-ops/issues/1/comments");
+    assert.equal(path, "/repos/jmarrero-forge/bot-ops/issues/1/comments");
     assert.equal(!(data instanceof Error) && data.state, "ok");
   });
   it("says when none is published", async () => assert.deepEqual((await load(200, [])).data, { state: "none" }));
@@ -164,8 +164,8 @@ describe("Mistral's allowance from the pools file", () => {
     assert.equal(parseBudget("not json", now), undefined);
   });
   it("reads it after the snapshot, one conditional GET, only for a Mistral row without an allowance of its own", async () => {
-    assert.deepEqual(USAGE_CONFIG.mistralAllowance, { repo: "cgwalters-forge/tracker", path: ".github/agentic-job/pools.json" });
-    const snapshot = (mistral: unknown) => [{ user: { login: "cgwalters-bot" }, body: body({ ...fixture<object>("usage-pools.json"), mistral }) }];
+    assert.deepEqual(USAGE_CONFIG.mistralAllowance, { repo: "jmarrero-forge/tracker", path: ".github/agentic-job/pools.json" });
+    const snapshot = (mistral: unknown) => [{ user: { login: "jmarrero-bot" }, body: body({ ...fixture<object>("usage-pools.json"), mistral }) }];
     const run = async (mistral: unknown, target: { repo: string; path: string } | null = { repo: "example/tracker", path: ".github/agentic-job/pools.json" }) => {
       const { fetchImpl, calls } = scriptedFetch((_m, url) => url.endsWith(usagePath) ? { body: snapshot(mistral) }
         : url.endsWith("/repos/example/tracker/contents/.github/agentic-job/pools.json") ? { body: { encoding: "base64", size: 200, content: Buffer.from(JSON.stringify(pools)).toString("base64"), html_url: "https://github.com/example/tracker/blob/main/.github/agentic-job/pools.json" } } : undefined);

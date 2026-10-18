@@ -137,8 +137,8 @@ async function until(what: string, ok: () => boolean, ms = 3_000): Promise<void>
 it("is off with an empty configuration and confines endpoints to the configured tailnet", () => {
   assert.equal(parseChatConfig({ tailnetDomain: "", sources: [] }), undefined);
   assert.equal(chatPanel(new GitHub(async () => "token"), { config: parseChatConfig({ tailnetDomain: "", sources: [] }) }), undefined);
-  assert.equal(CHAT_CONFIG?.tailnetDomain, "tailf2eb8.ts.net");
-  assert.deepEqual(CHAT_CONFIG?.sources.map((s) => s.repo), ["cgwalters-forge/tracker"]);
+  // jmarrero-forge/tracker has no session workflow yet, so chat is off.
+  assert.equal(CHAT_CONFIG, undefined);
   assert.deepEqual(parseChatConfig(config), config);
   for (const url of ["ws://runner.example.ts.net/", "wss://example.ts.net/", "wss://runner.example.ts.net.evil/", "wss://u@runner.example.ts.net/", "wss://runner.example.ts.net:444/", "wss://runner.example.ts.net/?token=x"]) assert.equal(chatEndpoint(url, config.tailnetDomain), undefined);
   assert.equal(chatEndpoint("wss://runner.example.ts.net/acp", config.tailnetDomain), "wss://runner.example.ts.net/acp");

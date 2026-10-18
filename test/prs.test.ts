@@ -24,18 +24,18 @@ const token = async () => "t";
 const API = "https://api.github.com";
 const HEAD = "c".repeat(40);
 const MOVED = "d".repeat(40);
-const ref = { owner: "cgwalters-forge", repo: "widget", number: 7 };
-const PULL = `${API}/repos/cgwalters-forge/widget/pulls/7`;
+const ref = { owner: "jmarrero-forge", repo: "widget", number: 7 };
+const PULL = `${API}/repos/jmarrero-forge/widget/pulls/7`;
 
 function pull(over: Record<string, unknown> = {}) {
   return {
     number: 7,
-    html_url: "https://github.com/cgwalters-forge/widget/pull/7",
+    html_url: "https://github.com/jmarrero-forge/widget/pull/7",
     title: "widget: Fix it",
     body: "Body",
     draft: true,
     state: "open",
-    user: { login: "cgwalters-bot" },
+    user: { login: "jmarrero-bot" },
     head: { sha: HEAD, ref: "bot/fix" },
     base: { ref: "main" },
     additions: 3,
@@ -48,7 +48,7 @@ function pull(over: Record<string, unknown> = {}) {
 
 describe("loadForgePrs", () => {
   it("searches the bot's open PRs, page by page, and keeps the forge's drafts", async () => {
-    const item = (n: number) => ({ html_url: `https://github.com/cgwalters-forge/r/pull/${n}`, pull_request: {}, title: `#${n}`, draft: true, user: { login: "cgwalters-bot" } });
+    const item = (n: number) => ({ html_url: `https://github.com/jmarrero-forge/r/pull/${n}`, pull_request: {}, title: `#${n}`, draft: true, user: { login: "jmarrero-bot" } });
     const { fetchImpl, calls } = scriptedFetch((_m, url) => {
       const page = Number(new URL(url).searchParams.get("page"));
       if (page === 1) return { body: { total_count: 101, items: Array.from({ length: 100 }, (_, i) => item(i + 1)) } };
@@ -88,8 +88,8 @@ describe("the bot's PRs other than the forge's drafts", () => {
     });
 
   it("searches them and those requesting his review, with GitHub's own qualifiers", async () => {
-    assert.equal(OTHER_QUERY, "is:pr is:open author:cgwalters-bot");
-    assert.equal(REQUESTED_QUERY, "is:pr is:open draft:false author:cgwalters-bot user-review-requested:cgwalters");
+    assert.equal(OTHER_QUERY, "is:pr is:open author:jmarrero-bot");
+    assert.equal(REQUESTED_QUERY, "is:pr is:open draft:false author:jmarrero-bot user-review-requested:jmarrero");
     const { fetchImpl } = github();
     const others = await loadOtherPrs(new GitHub(token, fetchImpl));
     assert.deepEqual(
@@ -97,12 +97,12 @@ describe("the bot's PRs other than the forge's drafts", () => {
       [
         ["bootc-dev/bootc/pull/10", false],
         ["bootc-dev/bootc/pull/11", false],
-        ["cgwalters-bot/homegit/pull/45", true],
+        ["jmarrero-bot/homegit/pull/45", true],
         ["bootc-dev/bcvk/pull/12", false],
         ["coreos/bootupd/pull/13", false],
         ["bootc-dev/bootc/pull/14", false],
         // A PR in the forge's own repository is here; its drafts are loadForgePrs'.
-        ["cgwalters-forge/workflow-compiler/pull/15", true],
+        ["jmarrero-forge/workflow-compiler/pull/15", true],
       ],
     );
   });
@@ -127,7 +127,7 @@ describe("the bot's PRs other than the forge's drafts", () => {
     assert.deepEqual([rerun?.wait.failed, rerun?.wait.runs?.map((r) => r.url)], [["required-checks"], ["https://github.com/bootc-dev/bootc/actions/runs/900"]]);
     const paths = calls.map((c) => c.url.replace(API, ""));
     // The bot's own repositories have no DCO or maintainer reruns to read.
-    assert.ok(!paths.some((p) => /^\/repos\/cgwalters-(bot|forge)\/[^/]+\/(commits|rules)/.test(p)));
+    assert.ok(!paths.some((p) => /^\/repos\/jmarrero-(bot|forge)\/[^/]+\/(commits|rules)/.test(p)));
     // Commits are read only where DCO fails, review comments only after a change request.
     assert.deepEqual(paths.filter((p) => p.endsWith("/commits?per_page=100")), ["/repos/bootc-dev/bootc/pulls/10/commits?per_page=100"]);
     assert.deepEqual(paths.filter((p) => /pulls\/\d+\/comments/.test(p)), ["/repos/bootc-dev/bcvk/pulls/12/comments?per_page=100"]);
@@ -192,7 +192,7 @@ describe("mapLimit", () => {
 });
 
 describe("current concrete PR asks", () => {
-  const pr: ForgePr = { ref, url: "https://github.com/cgwalters-forge/widget/pull/7", title: "Fix widget", body: "", author: "someone", createdAt: "2026-01-01T00:00:00Z", updatedAt: "2026-10-01T00:00:00Z", draft: false };
+  const pr: ForgePr = { ref, url: "https://github.com/jmarrero-forge/widget/pull/7", title: "Fix widget", body: "", author: "someone", createdAt: "2026-01-01T00:00:00Z", updatedAt: "2026-10-01T00:00:00Z", draft: false };
   it("rejects direct requests from human-authored PRs outside the bot search", async () => {
     const { fetchImpl } = scriptedFetch((_m, url) => ({ body: { items: new URL(url).searchParams.get("q") === REQUESTED_QUERY ? [{ html_url: pr.url, pull_request: {}, user: { login: "someone" }, draft: false }] : [] } }));
     const others = await loadOtherPrs(new GitHub(token, fetchImpl));
@@ -211,9 +211,9 @@ describe("current concrete PR asks", () => {
   ]) it(c.name, async () => {
     const askedAt = "2026-10-02T00:00:00Z";
     const { fetchImpl } = scriptedFetch((_m, url) => {
-      if (url === PULL) return { body: pull({ draft: c.draft, state: c.state ?? "open", merged_at: c.merged_at, requested_reviewers: c.requested ? [{ login: "cgwalters" }] : [] }) };
-      if (url.includes("/reviews?")) return { body: c.review ? [{ ...c.review, user: { login: "cgwalters" }, submitted_at: "2026-10-01T00:00:00Z" }] : [] };
-      if (url.includes("/timeline?")) return { body: [{ event: "review_requested", requested_reviewer: { login: "cgwalters" }, created_at: askedAt }] };
+      if (url === PULL) return { body: pull({ draft: c.draft, state: c.state ?? "open", merged_at: c.merged_at, requested_reviewers: c.requested ? [{ login: "jmarrero" }] : [] }) };
+      if (url.includes("/reviews?")) return { body: c.review ? [{ ...c.review, user: { login: "jmarrero" }, submitted_at: "2026-10-01T00:00:00Z" }] : [] };
+      if (url.includes("/timeline?")) return { body: [{ event: "review_requested", requested_reviewer: { login: "jmarrero" }, created_at: askedAt }] };
       if (url.includes("/comments?")) return { body: [] };
       return undefined;
     });
@@ -228,29 +228,29 @@ describe("current concrete PR asks", () => {
     const body = `<!-- bot-meta -->\n- Upstream: \`upstream/widget\`\n- Contribution policy: \`${policy}\`\n<!-- /bot-meta -->`;
     const { fetchImpl, calls } = scriptedFetch((_method, url) => {
       if (url === PULL) return { body: pull({ body }) };
-      if (url.includes("/reviews?")) return { body: [{ state: "APPROVED", commit_id: HEAD, user: { login: "cgwalters" }, submitted_at: "2026-10-01T00:00:00Z" }] };
+      if (url.includes("/reviews?")) return { body: [{ state: "APPROVED", commit_id: HEAD, user: { login: "jmarrero" }, submitted_at: "2026-10-01T00:00:00Z" }] };
       if (url.includes("/comments?")) return { body: [] };
       return undefined;
     });
-    const read = await loadWaiting(new GitHub(token, fetchImpl), [{ pr: { ...pr, body, author: "cgwalters-bot", draft: true }, requested: false }]);
+    const read = await loadWaiting(new GitHub(token, fetchImpl), [{ pr: { ...pr, body, author: "jmarrero-bot", draft: true }, requested: false }]);
     assert.deepEqual(read.errors, []);
     const entries = buildEntries([], [], new Map(), true, new Set(), { others: read.prs });
     assert.equal(read.prs.length, 1);
     assert.ok(calls.every((c) => c.method === "GET" && !c.url.includes("/commits?")), "no promotion attribution reads");
     const action = policy === "human-text" ? "write" : "promote";
     assert.deepEqual(buildNeeds({ entries }).map((n) => n.action), [action]);
-    const forgeEntries = buildEntries([], [{ ...pr, body, author: "cgwalters-bot", draft: true }], new Map([[refKey(ref), { state: "approved" }]]));
+    const forgeEntries = buildEntries([], [{ ...pr, body, author: "jmarrero-bot", draft: true }], new Map([[refKey(ref), { state: "approved" }]]));
     assert.deepEqual(buildNeeds({ entries: forgeEntries }).map((n) => n.action), [action]);
   });
 });
 
 describe("refreshVerdicts", () => {
   const forgePr = (n: number, updatedAt: string): ForgePr => ({
-    ref: { owner: "cgwalters-forge", repo: "widget", number: n },
-    url: `https://github.com/cgwalters-forge/widget/pull/${n}`,
+    ref: { owner: "jmarrero-forge", repo: "widget", number: n },
+    url: `https://github.com/jmarrero-forge/widget/pull/${n}`,
     title: "",
     body: "",
-    author: "cgwalters-bot",
+    author: "jmarrero-bot",
     createdAt: "",
     updatedAt,
     draft: true,
@@ -258,67 +258,67 @@ describe("refreshVerdicts", () => {
 
   it("re-reads only PRs that changed, against their current heads", async () => {
     const { fetchImpl, calls } = scriptedFetch((_m, url) => {
-      if (url.startsWith(`${API}/repos/cgwalters-forge/widget/pulls?`)) {
+      if (url.startsWith(`${API}/repos/jmarrero-forge/widget/pulls?`)) {
         return { body: [pull({ number: 1, head: { sha: HEAD } }), pull({ number: 2, head: { sha: MOVED } })] };
       }
-      if (url.startsWith(`${API}/repos/cgwalters-forge/widget/pulls/2/reviews`)) {
-        return { body: [{ user: { login: "cgwalters" }, state: "APPROVED", commit_id: HEAD, submitted_at: "2026-01-01T00:00:00Z" }] };
+      if (url.startsWith(`${API}/repos/jmarrero-forge/widget/pulls/2/reviews`)) {
+        return { body: [{ user: { login: "jmarrero" }, state: "APPROVED", commit_id: HEAD, submitted_at: "2026-01-01T00:00:00Z" }] };
       }
-      if (url.startsWith(`${API}/repos/cgwalters-forge/widget/issues/2/comments`)) return { body: [] };
+      if (url.startsWith(`${API}/repos/jmarrero-forge/widget/issues/2/comments`)) return { body: [] };
       return undefined;
     });
     const known = new Map<string, VerdictEntry>([
-      ["cgwalters-forge/widget#1", { updatedAt: "u1", head: HEAD, verdict: { state: "approved" } }],
-      ["cgwalters-forge/widget#3", { updatedAt: "gone", head: HEAD, verdict: { state: "none" } }],
+      ["jmarrero-forge/widget#1", { updatedAt: "u1", head: HEAD, verdict: { state: "approved" } }],
+      ["jmarrero-forge/widget#3", { updatedAt: "gone", head: HEAD, verdict: { state: "none" } }],
     ]);
     const out = await refreshVerdicts(new GitHub(token, fetchImpl), [forgePr(1, "u1"), forgePr(2, "u2")], known);
-    assert.deepEqual([...out.keys()].sort(), ["cgwalters-forge/widget#1", "cgwalters-forge/widget#2"]);
-    assert.equal(out.get("cgwalters-forge/widget#1")?.verdict.state, "approved");
-    assert.equal(out.get("cgwalters-forge/widget#2")?.verdict.state, "approved-older");
-    assert.equal(out.get("cgwalters-forge/widget#2")?.head, MOVED);
+    assert.deepEqual([...out.keys()].sort(), ["jmarrero-forge/widget#1", "jmarrero-forge/widget#2"]);
+    assert.equal(out.get("jmarrero-forge/widget#1")?.verdict.state, "approved");
+    assert.equal(out.get("jmarrero-forge/widget#2")?.verdict.state, "approved-older");
+    assert.equal(out.get("jmarrero-forge/widget#2")?.head, MOVED);
     assert.equal(calls.filter((c) => c.url.includes("/reviews")).length, 1);
   });
 
   it("marks a PR the open list no longer has as undecided", async () => {
     const { fetchImpl } = scriptedFetch((_m, url) => (url.includes("/pulls?") ? { body: [] } : undefined));
     const out = await refreshVerdicts(new GitHub(token, fetchImpl), [forgePr(5, "u")], new Map());
-    assert.deepEqual(out.get("cgwalters-forge/widget#5")?.verdict, { state: "none" });
+    assert.deepEqual(out.get("jmarrero-forge/widget#5")?.verdict, { state: "none" });
   });
 
   it("counts a /promote comment", async () => {
     const { fetchImpl } = scriptedFetch((_m, url) => {
       if (url.includes("/pulls?")) return { body: [pull({ number: 6 })] };
       if (url.includes("/pulls/6/reviews")) return { body: [] };
-      if (url.includes("/issues/6/comments")) return { body: [{ user: { login: "cgwalters" }, body: "/promote", created_at: "2026-01-01T00:00:00Z" }] };
+      if (url.includes("/issues/6/comments")) return { body: [{ user: { login: "jmarrero" }, body: "/promote", created_at: "2026-01-01T00:00:00Z" }] };
       return undefined;
     });
     const out = await refreshVerdicts(new GitHub(token, fetchImpl), [forgePr(6, "u")], new Map());
-    assert.equal(out.get("cgwalters-forge/widget#6")?.verdict.state, "promoted");
+    assert.equal(out.get("jmarrero-forge/widget#6")?.verdict.state, "promoted");
   });
 
   it("notes whether the bot replied after his change request, inline replies included", async () => {
     const cases: [string, { user: { login: string }; created_at: string }[], boolean][] = [
       ["no reply", [], false],
-      ["an inline reply", [{ user: { login: "cgwalters-bot" }, created_at: "2026-01-02T00:00:00Z" }], true],
+      ["an inline reply", [{ user: { login: "jmarrero-bot" }, created_at: "2026-01-02T00:00:00Z" }], true],
       ["someone else's", [{ user: { login: "someone" }, created_at: "2026-01-02T00:00:00Z" }], false],
-      ["the bot's, before", [{ user: { login: "cgwalters-bot" }, created_at: "2025-12-31T00:00:00Z" }], false],
+      ["the bot's, before", [{ user: { login: "jmarrero-bot" }, created_at: "2025-12-31T00:00:00Z" }], false],
     ];
     for (const [name, replies, want] of cases) {
       const { fetchImpl } = scriptedFetch((_m, url) => {
         if (url.includes("/pulls?")) return { body: [pull({ number: 8 })] };
-        if (url.includes("/pulls/8/reviews")) return { body: [{ user: { login: "cgwalters" }, state: "CHANGES_REQUESTED", commit_id: HEAD, submitted_at: "2026-01-01T00:00:00Z" }] };
+        if (url.includes("/pulls/8/reviews")) return { body: [{ user: { login: "jmarrero" }, state: "CHANGES_REQUESTED", commit_id: HEAD, submitted_at: "2026-01-01T00:00:00Z" }] };
         if (url.includes("/issues/8/comments")) return { body: [] };
         if (url.includes("/pulls/8/comments")) return { body: replies };
         return undefined;
       });
       const out = await refreshVerdicts(new GitHub(token, fetchImpl), [forgePr(8, "u")], new Map());
-      assert.deepEqual([out.get("cgwalters-forge/widget#8")?.verdict.state, out.get("cgwalters-forge/widget#8")?.botReplied], ["changes-requested", want], name);
+      assert.deepEqual([out.get("jmarrero-forge/widget#8")?.verdict.state, out.get("jmarrero-forge/widget#8")?.botReplied], ["changes-requested", want], name);
     }
   });
 
   it("makes no requests when nothing changed", async () => {
     const { fetchImpl, calls } = scriptedFetch(() => undefined);
-    const known = new Map<string, VerdictEntry>([["cgwalters-forge/widget#1", { updatedAt: "u1", head: HEAD, verdict: { state: "none" } }]]);
+    const known = new Map<string, VerdictEntry>([["jmarrero-forge/widget#1", { updatedAt: "u1", head: HEAD, verdict: { state: "none" } }]]);
     const out = await refreshVerdicts(new GitHub(token, fetchImpl), [forgePr(1, "u1")], known);
     assert.equal(out.size, 1);
     assert.equal(calls.length, 0);
@@ -329,13 +329,13 @@ describe("loadPrDetail", () => {
   const route = (commitSha: string, commitsTotal = 1) => (method: string, url: string, headers: Record<string, string>) => {
     if (url === PULL) return method === "GET" && headers["If-None-Match"] ? { status: 304 } : { body: pull({ commits: commitsTotal }), headers: { etag: '"p"' } };
     if (url.startsWith(`${PULL}/commits`)) {
-      return { body: [{ sha: commitSha, html_url: "https://github.com/c", commit: { message: "widget: Fix it\n\nBecause.", author: { name: "Bot", date: "2026-01-01T00:00:00Z" } }, author: { login: "cgwalters-bot" } }] };
+      return { body: [{ sha: commitSha, html_url: "https://github.com/c", commit: { message: "widget: Fix it\n\nBecause.", author: { name: "Bot", date: "2026-01-01T00:00:00Z" } }, author: { login: "jmarrero-bot" } }] };
     }
     if (url.startsWith(`${PULL}/files`)) return { body: [] };
     if (url.startsWith(`${PULL}/reviews`) || url.includes("/issues/7/comments")) return { body: [] };
     if (url.includes("/check-runs")) return { body: { check_runs: [] } };
     if (url.endsWith("/status")) return { body: { statuses: [] } };
-    if (url === `${API}/repos/cgwalters-forge/widget`) return { body: {} };
+    if (url === `${API}/repos/jmarrero-forge/widget`) return { body: {} };
     if (method === "POST") return { body: { html_url: "https://github.com/review/2" } };
     return undefined;
   };
@@ -363,14 +363,14 @@ describe("loadPrDetail", () => {
     const { fetchImpl } = scriptedFetch((_m, url) => {
       if (url === PULL) return { body: pull() };
       if (url.startsWith(`${PULL}/commits`)) {
-        return { body: [{ sha: HEAD, html_url: "https://github.com/c", commit: { message: "widget: Fix it\n\nBecause.", author: { name: "Bot", date: "2026-01-01T00:00:00Z" } }, author: { login: "cgwalters-bot" } }] };
+        return { body: [{ sha: HEAD, html_url: "https://github.com/c", commit: { message: "widget: Fix it\n\nBecause.", author: { name: "Bot", date: "2026-01-01T00:00:00Z" } }, author: { login: "jmarrero-bot" } }] };
       }
       if (url.includes("/issues/7/comments")) return { body: [] };
       if (url.startsWith(`${PULL}/files`)) return { body: [{ filename: "src/a.rs", status: "modified", additions: 3, deletions: 1, patch: "@@ -1 +1 @@\n-a\n+b" }] };
       if (url.startsWith(`${PULL}/reviews`)) return { body: [] };
       if (url.includes(`/commits/${HEAD}/check-runs`)) return { status: 403, body: { message: "Resource not accessible" } };
       if (url.endsWith(`/commits/${HEAD}/status`)) return { body: { statuses: [{ context: "DCO", state: "success" }] } };
-      if (url === `${API}/repos/cgwalters-forge/widget`) return { body: { private: false, parent: { full_name: "up/widget" } } };
+      if (url === `${API}/repos/jmarrero-forge/widget`) return { body: { private: false, parent: { full_name: "up/widget" } } };
       return undefined;
     });
     const d = await loadPrDetail(new GitHub(token, fetchImpl), ref);
@@ -430,7 +430,7 @@ describe("loadFileLines and loadRangeFiles", () => {
     );
     const lines = await loadFileLines(new GitHub(token, fetchImpl), ref, "src/a b#.rs", HEAD);
     assert.deepEqual(lines, ["fn a() {}", "// é ✓"]);
-    assert.equal(calls[0]?.url, `${API}/repos/cgwalters-forge/widget/contents/src/a%20b%23.rs?ref=${HEAD}`);
+    assert.equal(calls[0]?.url, `${API}/repos/jmarrero-forge/widget/contents/src/a%20b%23.rs?ref=${HEAD}`);
   });
 
   it("refuses what it can't show", async () => {
