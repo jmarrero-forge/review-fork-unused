@@ -144,18 +144,18 @@ describe("From people loader", () => {
 
   it("finds mentions in an opening body and inline review comments, and lists unlocated mentions", async () => {
     const alice = { login: "alice", type: "User" };
-    const bot = { login: "cgwalters-bot", type: "User" };
+    const bot = { login: "jmarrero-bot", type: "User" };
     const mention = (n: number): PeopleNotification => ({ ...data.notifications[1]!, id: String(200 + n), subject: { type: "Issue", url: `https://api.github.com/repos/upstream/widget/issues/${n}` } });
     const threads = {
       // The mention is in the issue body; the timeline has no event for it.
-      20: { subject: { user: alice, body: "@cgwalters, is this the right approach?", created_at: "2026-10-01T00:00:00Z" }, timeline: [] },
+      20: { subject: { user: alice, body: "@jmarrero, is this the right approach?", created_at: "2026-10-01T00:00:00Z" }, timeline: [] },
       // An inline review comment is a line-commented event with comments[].
-      21: { subject: { user: bot, body: "Automated PR", pull_request: {} }, timeline: [{ event: "line-commented", comments: [{ user: alice, body: "@cgwalters see this line", created_at: "2026-10-02T12:00:00Z" }] }] },
+      21: { subject: { user: bot, body: "Automated PR", pull_request: {} }, timeline: [{ event: "line-commented", comments: [{ user: alice, body: "@jmarrero see this line", created_at: "2026-10-02T12:00:00Z" }] }] },
       // Nothing read mentions the operator: listed, not hidden.
       22: { subject: { user: alice, body: "no mention here" }, timeline: [] },
       // Located but from a bot, or before the window: still dropped.
-      23: { subject: { user: bot, body: "@cgwalters bot body", created_at: "2026-10-02T00:00:00Z" }, timeline: [] },
-      24: { subject: { user: alice, body: "@cgwalters old body", created_at: "2026-09-01T00:00:00Z" }, timeline: [{ event: "line-commented", comments: [{ user: bot, body: "@cgwalters bot line", created_at: "2026-10-02T00:00:00Z" }] }] },
+      23: { subject: { user: bot, body: "@jmarrero bot body", created_at: "2026-10-02T00:00:00Z" }, timeline: [] },
+      24: { subject: { user: alice, body: "@jmarrero old body", created_at: "2026-09-01T00:00:00Z" }, timeline: [{ event: "line-commented", comments: [{ user: bot, body: "@jmarrero bot line", created_at: "2026-10-02T00:00:00Z" }] }] },
     };
     const { gh } = client({ notifications: [20, 21, 22, 23, 24].map(mention), threads, searchStatus: 500 });
     const people = await loadPeople(gh, now);

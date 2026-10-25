@@ -162,7 +162,7 @@ describe("the bot's PRs other than the forge's drafts", () => {
     // A PR whose updated_at moved is read again; so is everything after WAITING_REUSE_MS.
     const moved = others.map((o) => (o.pr.title === "requested" ? { ...o, pr: { ...o.pr, updatedAt: "2026-10-01T00:00:00Z" } } : o));
     const one = await poll(cached.got.reads, moved);
-    assert.ok(one.paths.includes("/repos/cgwalters-bot/homegit/pulls/45"));
+    assert.ok(one.paths.includes("/repos/jmarrero-bot/homegit/pulls/45"));
     assert.equal(one.paths.filter((p) => /\/pulls\/\d+$/.test(p)).length, 1);
     const old = await poll(cached.got.reads, others, T + 11 * 60_000);
     assert.equal(old.paths.filter((p) => /\/pulls\/\d+$/.test(p)).length, others.length);

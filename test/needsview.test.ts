@@ -334,7 +334,7 @@ describe("the bar over the rows", () => {
 describe("needRow location", () => {
   const upstreamPr: ForgePr = {
     ref: { owner: "upstream", repo: "widget", number: 2500 }, url: "https://github.com/upstream/widget/pull/2500", title: "Fix the widget", body: "",
-    author: "cgwalters-bot", createdAt: "2026-01-10T00:00:00Z", updatedAt: "2026-01-11T00:00:00Z", draft: false,
+    author: "jmarrero-bot", createdAt: "2026-01-10T00:00:00Z", updatedAt: "2026-01-11T00:00:00Z", draft: false,
   };
   const reviewEntry = (item: Item | undefined): Entry => ({
     key: "pr:upstream/widget#2500", kind: "pr", pr: upstreamPr, title: upstreamPr.title, where: "upstream/widget#2500", href: "#pr/upstream/widget/2500",
@@ -367,8 +367,8 @@ describe("needRow location", () => {
   });
 
   it("keeps the issue as the location of a question row", () => {
-    const el = needRow(first([tracked("PVTI_q", 21, { labels: ["question"], body: BODY, org: "cgwalters-bot" })]), hooks()).querySelector(".tag")!;
+    const el = needRow(first([tracked("PVTI_q", 21, { labels: ["question"], body: BODY, org: "jmarrero-bot" })]), hooks()).querySelector(".tag")!;
     assert.deepEqual(links(el), [["tracker#21", `${TRACKER}/21`]]);
-    assert.match(text(el), /^tracker#21 · cgwalters-bot · /);
+    assert.match(text(el), /^tracker#21 · jmarrero-bot · /);
   });
 });

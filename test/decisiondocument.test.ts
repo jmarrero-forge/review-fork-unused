@@ -403,7 +403,8 @@ test("resolve is off unless configured, and on it moves resolved entries read-on
   await refreshDocument(recordedGitHub(about, requests), slot, render, { repo: "example/private", number: 8 });
   assert.equal(requests.length, 1);
   assert.equal(slot.querySelector(".decision-resolved"), null);
-  assert.equal(DECISIONS_CONFIG.document?.resolve, false);
+  // With no document configured here, resolve is off too.
+  assert.ok(!DECISIONS_CONFIG.document?.resolve);
 
   await refreshDocument(recordedGitHub(about), slot, render, { repo: "example/private", number: 8, resolve: true, checkboxes: true });
   const resolved = slot.querySelector<HTMLDetailsElement>(".decision-resolved")!;

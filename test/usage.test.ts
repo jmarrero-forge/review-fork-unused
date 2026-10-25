@@ -37,7 +37,7 @@ describe("findUsage", () => {
   it("reads the comment edited last, dated by its edit, whatever the order", () => {
     for (const list of [snapshot(), snapshot().reverse()]) {
       const u = findUsage(list);
-      assert.equal(u?.commentUrl, "https://github.com/cgwalters-forge/bot-ops/issues/1#issuecomment-11");
+      assert.equal(u?.commentUrl, "https://github.com/jmarrero-forge/bot-ops/issues/1#issuecomment-11");
       assert.equal(u?.updatedAt, "2026-10-18T14:42:00Z");
       assert.deepEqual(u?.windows, []);
       assert.deepEqual(u?.pools?.claude, { usedPercent: 73, allowedPercent: 73.2, resetsAt: "2026-10-19T23:00:00.000Z", observedAt: "2026-10-18T14:40:00.000Z", hold: false, windowMinutes: 10080 });
@@ -168,10 +168,10 @@ describe("runs in the snapshot", () => {
     const u = parseUsage(body(raw()));
     assert.equal(u?.runs?.length, 5);
     assert.deepEqual(u?.runs?.[0], {
-      repository: "cgwalters-forge/review", runId: 19876543210, pool: "claude", kind: "implement", item: "cgwalters-forge/review#99",
+      repository: "jmarrero-forge/review", runId: 19876543210, pool: "claude", kind: "implement", item: "jmarrero-forge/review#99",
       finishedAt: "2026-10-18T13:30:00Z", requests: 412, tokens: { input: 120000, output: 310000, cacheRead: 41000000, cacheWrite: 2600000 },
     });
-    assert.deepEqual(u?.runs?.[3], { repository: "cgwalters-forge/agentic-job", runId: 19876543213, pool: "mistral", finishedAt: "2026-10-18T02:00:00Z", tokens: { input: 500000, output: 20000, cacheRead: 0, cacheWrite: 0 } });
+    assert.deepEqual(u?.runs?.[3], { repository: "jmarrero-forge/agentic-job", runId: 19876543213, pool: "mistral", finishedAt: "2026-10-18T02:00:00Z", tokens: { input: 500000, output: 20000, cacheRead: 0, cacheWrite: 0 } });
     assert.equal(u?.pools?.claude?.usedPercent, 73, "the pools are read as before");
   });
   it("tells no runs list from an empty one", () => {
@@ -182,7 +182,7 @@ describe("runs in the snapshot", () => {
   });
   it("drops a malformed run, not the list", () => {
     for (const bad of [
-      { repository: "review" }, { repository: "cgwalters-forge/.." }, { repository: "<b>/x" }, { run_id: "19876543210" }, { run_id: 1.5 }, { run_id: 0 }, { pool: "Claude" }, { pool: "<b>" },
+      { repository: "review" }, { repository: "jmarrero-forge/.." }, { repository: "<b>/x" }, { run_id: "19876543210" }, { run_id: 1.5 }, { run_id: 0 }, { pool: "Claude" }, { pool: "<b>" },
       { finished_at: "yesterday" }, { finished_at: undefined }, { tokens: { input: 1, output: 2, cache_read: 3 } }, { tokens: { input: -1, output: 2, cache_read: 3, cache_write: 4 } },
     ]) {
       assert.deepEqual(runs(bad), [], JSON.stringify(bad));
@@ -190,11 +190,11 @@ describe("runs in the snapshot", () => {
     assert.equal(parseUsage(body({ ...raw(), runs: [{ ...raw().runs[0], pool: "<b>" }, raw().runs[1]] }))?.runs?.length, 1);
   });
   it("counts a run listed twice once, by repository and run id", () => {
-    const twice = parseUsage(body({ ...raw(), runs: [raw().runs[0], { ...raw().runs[0], kind: "review" }, { ...raw().runs[0], repository: "cgwalters-forge/tracker" }] }))?.runs;
-    assert.deepEqual(twice?.map((r) => [r.repository, r.kind]), [["cgwalters-forge/review", "implement"], ["cgwalters-forge/tracker", "implement"]]);
+    const twice = parseUsage(body({ ...raw(), runs: [raw().runs[0], { ...raw().runs[0], kind: "review" }, { ...raw().runs[0], repository: "jmarrero-forge/tracker" }] }))?.runs;
+    assert.deepEqual(twice?.map((r) => [r.repository, r.kind]), [["jmarrero-forge/review", "implement"], ["jmarrero-forge/tracker", "implement"]]);
   });
   it("leaves out a kind, item or request count it can't read, keeping the run", () => {
-    for (const edit of [{ kind: "<img src=x>" }, { item: "cgwalters-forge/review" }, { item: "cgwalters-forge/review#0" }, { item: "../x#1" }, { requests: -1 }, { requests: "4" }]) {
+    for (const edit of [{ kind: "<img src=x>" }, { item: "jmarrero-forge/review" }, { item: "jmarrero-forge/review#0" }, { item: "../x#1" }, { requests: -1 }, { requests: "4" }]) {
       const [run] = runs(edit) ?? [];
       assert.ok(run, JSON.stringify(edit));
       const field = Object.keys(edit)[0] as "kind" | "item" | "requests";
@@ -219,9 +219,9 @@ describe("spendByRun", () => {
       { name: UNKNOWN_KIND, tokens: 520000, runs: 1 },
     ]);
     assert.deepEqual(spend.byRepository, [
-      { name: "cgwalters-forge/review", tokens: 52300000, runs: 2 },
-      { name: "cgwalters-forge/tracker", tokens: 3129000, runs: 1 },
-      { name: "cgwalters-forge/agentic-job", tokens: 520000, runs: 1 },
+      { name: "jmarrero-forge/review", tokens: 52300000, runs: 2 },
+      { name: "jmarrero-forge/tracker", tokens: 3129000, runs: 1 },
+      { name: "jmarrero-forge/agentic-job", tokens: 520000, runs: 1 },
     ]);
   });
   it("leaves out a run dated after now, and finds nothing a day later", () => {

@@ -177,18 +177,18 @@ describe("review-queue: whose turn a PR is", () => {
       const path = url.slice(API.length);
       // The requests search finds an upstream PR asking for his review; the other search, the forge's drafts.
       if (path.startsWith("/search/issues?") && decodeURIComponent(path).includes("user-review-requested:")) {
-        const item = { html_url: UPSTREAM, title: "widget: Upstream fix", body: "", user: { login: "cgwalters-bot" }, created_at: "2026-01-07T00:00:00Z", updated_at: "2026-01-08T00:00:00Z", draft: false, pull_request: {} };
+        const item = { html_url: UPSTREAM, title: "widget: Upstream fix", body: "", user: { login: "jmarrero-bot" }, created_at: "2026-01-07T00:00:00Z", updated_at: "2026-01-08T00:00:00Z", draft: false, pull_request: {} };
         return { body: { total_count: 1, items: [item] } };
       }
-      if (path.startsWith("/repos/cgwalters-forge/widget/pulls/5/reviews")) {
-        return { body: [{ user: { login: "cgwalters" }, state: "CHANGES_REQUESTED", submitted_at: "2026-01-11T00:00:00Z", commit_id: HEAD }] };
+      if (path.startsWith("/repos/jmarrero-forge/widget/pulls/5/reviews")) {
+        return { body: [{ user: { login: "jmarrero" }, state: "CHANGES_REQUESTED", submitted_at: "2026-01-11T00:00:00Z", commit_id: HEAD }] };
       }
-      if (path.startsWith("/repos/cgwalters-forge/widget/issues/5/comments")) {
-        return { body: replied ? [{ user: { login: "cgwalters-bot" }, created_at: "2026-01-12T00:00:00Z", html_url: "https://github.com/c/2", body: "done" }] : [] };
+      if (path.startsWith("/repos/jmarrero-forge/widget/issues/5/comments")) {
+        return { body: replied ? [{ user: { login: "jmarrero-bot" }, created_at: "2026-01-12T00:00:00Z", html_url: "https://github.com/c/2", body: "done" }] : [] };
       }
-      if (/^\/repos\/cgwalters-forge\/\w+\/pulls\/\d+\/comments/.test(path)) return { body: [] };
+      if (/^\/repos\/jmarrero-forge\/\w+\/pulls\/\d+\/comments/.test(path)) return { body: [] };
       if (path === "/repos/example-upstream/widget/pulls/60") {
-        return { body: { number: 60, html_url: UPSTREAM, state: "open", title: "widget: Upstream fix", requested_reviewers: [{ login: "cgwalters" }], head: { sha: HEAD }, base: { ref: "main" } } };
+        return { body: { number: 60, html_url: UPSTREAM, state: "open", title: "widget: Upstream fix", requested_reviewers: [{ login: "jmarrero" }], head: { sha: HEAD }, base: { ref: "main" } } };
       }
       if (path.startsWith("/repos/example-upstream/widget/commits/")) return { body: { total_count: 0, check_runs: [] } };
       if (/^\/repos\/example-upstream\/widget\/(rules|pulls\/60\/reviews|issues\/60\/(comments|timeline))/.test(path)) return { body: [] };
@@ -200,7 +200,7 @@ describe("review-queue: whose turn a PR is", () => {
     const r = await runCli(["--json"], turns(false));
     assert.equal(r.stderr, "");
     const doc = JSON.parse(r.stdout) as QueueJson;
-    const forge = pr(doc, "cgwalters-forge/widget#5");
+    const forge = pr(doc, "jmarrero-forge/widget#5");
     assert.deepEqual(forge?.wait, { onBot: true, reasons: [] });
     assert.equal(forge?.action.verb, "wait");
     assert.equal(doc.entries.at(-1), forge);
@@ -209,12 +209,12 @@ describe("review-queue: whose turn a PR is", () => {
     const text = (await runCli(["--text"], turns(false), true)).stdout.split("\n");
     const group = text.indexOf("== Changes requested, waiting on the bot");
     assert.ok(group > 0);
-    assert.match(text[group + 1] ?? "", /cgwalters-forge\/widget#5/);
+    assert.match(text[group + 1] ?? "", /jmarrero-forge\/widget#5/);
   });
 
   it("is his again once the bot replied", async () => {
     const doc = JSON.parse((await runCli(["--json"], turns(true))).stdout) as QueueJson;
-    const forge = pr(doc, "cgwalters-forge/widget#5");
+    const forge = pr(doc, "jmarrero-forge/widget#5");
     assert.deepEqual(forge?.wait, { onBot: false, reasons: ["updated"] });
     assert.deepEqual(forge?.action, { verb: "review", summary: "the bot responded to your change request" });
     assert.equal(doc.counts.open, 13);
@@ -230,7 +230,7 @@ describe("review-queue: whose turn a PR is", () => {
 
   it("still lists it when a forge PR's reviews can't be read", async () => {
     const route = turns(false);
-    const r = await runCli(["--json"], (m, url) => (url.includes("/cgwalters-forge/bootc/pulls/3/reviews") ? { status: 503, body: { message: "down" } } : route(m, url)));
+    const r = await runCli(["--json"], (m, url) => (url.includes("/jmarrero-forge/bootc/pulls/3/reviews") ? { status: 503, body: { message: "down" } } : route(m, url)));
     const doc = JSON.parse(r.stdout) as QueueJson;
     assert.deepEqual(doc.warnings.map((w) => w.split(":")[0]), ["couldn't read the forge's PRs or their reviews"]);
     assert.ok(pr(doc, "example-upstream/widget#60"));

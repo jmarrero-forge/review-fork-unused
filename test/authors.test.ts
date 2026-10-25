@@ -25,6 +25,6 @@ describe("authors", () => {
     assert.equal(roleOf("forge-review[bot]", apps), "review");
     assert.equal(authorLabel("forge-review[bot]", apps), "forge-review[bot] (review)");
     assert.equal(authorLabel(BOT_LOGIN, apps), BOT_LOGIN);
-    assert.equal(authorLabel("cgwalters", apps), "cgwalters");
+    assert.equal(authorLabel("jmarrero", apps), "jmarrero");
   });
 });

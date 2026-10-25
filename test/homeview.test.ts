@@ -76,17 +76,17 @@ describe("operator dashboard", () => {
     assert.deepEqual([...spend.querySelectorAll("th")].map((th) => text(th)), ["Pool", "Kind", "Repository", "Item", "Tokens", "Finished"]);
     const rows = [...spend.querySelectorAll("tbody tr")].map((tr) => [...tr.querySelectorAll("td")].map((td) => text(td)));
     assert.deepEqual(rows.map((r) => r.slice(0, 5)), [
-      ["Claude", "implement", "cgwalters-forge/review", "cgwalters-forge/review#99", "44.0M"],
-      ["Claude", "review", "cgwalters-forge/review", "cgwalters-forge/review#97", "8.3M"],
-      ["OpenAI", "review", "cgwalters-forge/tracker", "cgwalters-forge/tracker#797", "3.1M"],
-      ["Mistral", "unknown", "cgwalters-forge/agentic-job", "—", "520k"],
+      ["Claude", "implement", "jmarrero-forge/review", "jmarrero-forge/review#99", "44.0M"],
+      ["Claude", "review", "jmarrero-forge/review", "jmarrero-forge/review#97", "8.3M"],
+      ["OpenAI", "review", "jmarrero-forge/tracker", "jmarrero-forge/tracker#797", "3.1M"],
+      ["Mistral", "unknown", "jmarrero-forge/agentic-job", "—", "520k"],
     ]);
     assert.equal(rows[0]?.[5], time("2026-10-18T13:30:00Z"));
     const links = [...spend.querySelectorAll("tbody tr:first-child a")].map((a) => a.getAttribute("href"));
-    assert.deepEqual(links, ["https://github.com/cgwalters-forge/review/issues/99", "https://github.com/cgwalters-forge/review/actions/runs/19876543210"]);
+    assert.deepEqual(links, ["https://github.com/jmarrero-forge/review/issues/99", "https://github.com/jmarrero-forge/review/actions/runs/19876543210"]);
     assert.equal(spend.querySelector("tbody td.num")?.getAttribute("title"), "120k input, 310k output, 41.0M cache read, 2.6M cache write, in 412 requests");
     assert.match(text(spend), /By kind: implement 44\.0M \(1 run\) · review 11\.4M \(2 runs\) · unknown 520k \(1 run\)\./);
-    assert.match(text(spend), /By repository: cgwalters-forge\/review 52\.3M \(2 runs\) · cgwalters-forge\/tracker 3\.1M \(1 run\) · cgwalters-forge\/agentic-job 520k \(1 run\)\./);
+    assert.match(text(spend), /By repository: jmarrero-forge\/review 52\.3M \(2 runs\) · jmarrero-forge\/tracker 3\.1M \(1 run\) · jmarrero-forge\/agentic-job 520k \(1 run\)\./);
     assert.doesNotMatch(text(spend), /#90/, "the run of two days ago is not shown");
     assert.match(text(home.slots.weekly), /Claude.*73\.0% used/, "the pool rows stay above it");
   });
@@ -255,7 +255,6 @@ describe("operator dashboard", () => {
   });
 
   it("puts Decisions before Status and refreshes its age without resetting expansion", () => {
-    // jmarrero-forge runs no Coordinator workflow, so Status is never marked stale.
     const home = homeSkeleton(hooks());
     assert.ok([...home.el.children].indexOf(home.sections.needs.details) < [...home.el.children].indexOf(home.slots.status));
     const status = { body: "First paragraph\n\nSecond paragraph", createdAt: "2026-10-15T10:00:00Z" };
@@ -266,8 +265,7 @@ describe("operator dashboard", () => {
     assert.equal(home.slots.status.querySelector(".status-age.hot"), null);
     home.slots.status.querySelector<HTMLButtonElement>("button")!.click();
     fillStatus(home, status, render, undefined, Date.parse("2026-10-15T11:01:00Z"));
-    assert.match(text(home.slots.status.querySelector(".status-age")), /61 min ago$/);
-    assert.equal(home.slots.status.querySelector(".status-age.hot"), null);
+    assert.match(text(home.slots.status.querySelector(".status-age.hot")), /61 min ago · stale/);
     assert.equal(home.slots.status.querySelector("button")?.getAttribute("aria-expanded"), "true");
     fillStatus(home, { ...status, createdAt: "invalid" }, render);
     assert.match(text(home.slots.status), /Status age unknown/);

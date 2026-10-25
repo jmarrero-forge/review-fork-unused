@@ -10,7 +10,7 @@ import { type Io, run } from "../src/cli/queue.ts";
 import { fields, rawItems, scriptedFetch } from "./helpers.ts";
 
 const NOW = new Date("2026-01-20T00:00:00Z");
-const TRACKER = "https://github.com/cgwalters-forge/tracker/issues";
+const TRACKER = "https://github.com/jmarrero-forge/tracker/issues";
 const UP = "https://github.com/example-upstream/widget";
 
 function item(nodeId: string, over: Partial<Item> = {}): Item {
@@ -22,11 +22,11 @@ function ask(nodeId: string, number: number, label: string, body: string, over: 
   return item(nodeId, {
     kind: "issue",
     url: `${TRACKER}/${number}`,
-    ref: { owner: "cgwalters-forge", repo: "tracker", number },
+    ref: { owner: "jmarrero-forge", repo: "tracker", number },
     state: "open",
     labels: [label],
-    author: "cgwalters-bot",
-    assignees: ["cgwalters"],
+    author: "jmarrero-bot",
+    assignees: ["jmarrero"],
     body,
     ...over,
   });
@@ -38,7 +38,7 @@ function pr(owner: string, repo: string, number: number, over: Partial<ForgePr> 
     url: `https://github.com/${owner}/${repo}/pull/${number}`,
     title: `${repo} #${number}`,
     body: "",
-    author: "cgwalters-bot",
+    author: "jmarrero-bot",
     createdAt: "2026-01-10T00:00:00Z",
     updatedAt: "2026-01-11T00:00:00Z",
     draft: true,
@@ -87,9 +87,9 @@ function fixtureQueue(): Entry[] {
       since: "2026-01-05T00:00:00Z",
       children: [itemEntry(question, { kind: "question", priority: "P0" }), itemEntry(review, { kind: "review" })],
     }),
-    prEntry(pr("cgwalters-forge", "widget", 5, { body: meta() }), { verdict: { state: "approved", url: "https://github.com/r/1" } }),
-    prEntry(pr("cgwalters-forge", "widget", 6, { body: meta("human-text") }), { verdict: { state: "approved" } }),
-    prEntry(pr("cgwalters-forge", "bootc", 3), { verdict: { state: "approved-older" } }),
+    prEntry(pr("jmarrero-forge", "widget", 5, { body: meta() }), { verdict: { state: "approved", url: "https://github.com/r/1" } }),
+    prEntry(pr("jmarrero-forge", "widget", 6, { body: meta("human-text") }), { verdict: { state: "approved" } }),
+    prEntry(pr("jmarrero-forge", "bootc", 3), { verdict: { state: "approved-older" } }),
     prEntry(pr("example-upstream", "widget", 60, { draft: false }), {
       wait: { onBot: false, reasons: ["rerun"], failed: ["ci / arm"], runs: [{ url: `${UP}/actions/runs/777`, owner: "example-upstream", repo: "widget", id: "777" }] },
     }),
@@ -193,7 +193,7 @@ describe("entryJson", () => {
           key: "item:PVTI_q",
           kind: "question",
           title: "PVTI_q",
-          where: "cgwalters-forge/tracker#21",
+          where: "jmarrero-forge/tracker#21",
           priority: "P0",
           rankPriority: "P0",
           org: null,
@@ -217,7 +217,7 @@ describe("entryJson", () => {
           key: "item:PVTI_r",
           kind: "review",
           title: "PVTI_r",
-          where: "cgwalters-forge/tracker#22",
+          where: "jmarrero-forge/tracker#22",
           priority: null,
           rankPriority: null,
           org: null,
@@ -236,7 +236,7 @@ describe("entryJson", () => {
 
   it("labels a verdict and keeps its URL", () => {
     assert.deepEqual(approvedJson?.verdict, { state: "approved", label: "approved", url: "https://github.com/r/1" });
-    assert.equal(approvedJson?.url, "https://github.com/cgwalters-forge/widget/pull/5");
+    assert.equal(approvedJson?.url, "https://github.com/jmarrero-forge/widget/pull/5");
   });
 
   it("leaves out a settled question's options, and blocks only when set", () => {
@@ -274,9 +274,9 @@ describe("suggestedAction", () => {
   }
 
   const more: [string, Entry, string, string][] = [
-    ["older change request", prEntry(pr("cgwalters-forge", "a", 1), { verdict: { state: "changes-requested-older" } }), "review", "review the push since your change request"],
-    ["promoted", prEntry(pr("cgwalters-forge", "a", 2), { verdict: { state: "promoted" } }), "wait", "you sent /promote; bot-pr acts next"],
-    ["unreviewed", prEntry(pr("cgwalters-forge", "a", 3), { verdict: { state: "none" } }), "review", "review the forge PR (approve to promote it upstream)"],
+    ["older change request", prEntry(pr("jmarrero-forge", "a", 1), { verdict: { state: "changes-requested-older" } }), "review", "review the push since your change request"],
+    ["promoted", prEntry(pr("jmarrero-forge", "a", 2), { verdict: { state: "promoted" } }), "wait", "you sent /promote; bot-pr acts next"],
+    ["unreviewed", prEntry(pr("jmarrero-forge", "a", 3), { verdict: { state: "none" } }), "review", "review the forge PR (approve to promote it upstream)"],
     ["review requested", prEntry(pr("up", "a", 4), { wait: { onBot: false, reasons: ["review-requested"] } }), "review", "review requested"],
     ["re-sign", prEntry(pr("up", "a", 5), { wait: { onBot: false, reasons: ["resign"], unsigned: ["abc1234"] } }), "review", "approve to re-sign (DCO): abc1234 lack your Signed-off-by"],
     ["answered", itemEntry(ask("PVTI_ans", 26, "question", "Q: x?\n"), { kind: "question", settled: true }), "wait", "you answered; the bot acts next"],
@@ -294,7 +294,7 @@ describe("suggestedAction", () => {
   it("names the runs to rerun", () => assert.deepEqual(actions[4]?.targets, [`${UP}/actions/runs/777`]));
 
   it("says why the app can't act", () => {
-    assert.deepEqual(actions[7], { verb: "act-on-github", summary: "the app can't act on this; see GitHub", reason: "cgwalters-forge/tracker#23 is not assigned to cgwalters" });
+    assert.deepEqual(actions[7], { verb: "act-on-github", summary: "the app can't act on this; see GitHub", reason: "jmarrero-forge/tracker#23 is not assigned to jmarrero" });
     const bare: Entry = { key: "item:x", kind: "chore", title: "x", where: "item", href: "#" };
     assert.deepEqual(suggestedAction(bare), { verb: "act-on-github", summary: "open it on GitHub", reason: "no board item" });
   });
@@ -316,7 +316,7 @@ describe("queueText", () => {
       ["== P0", "== No priority", "== Changes requested, waiting on the bot", "== Answered, waiting on the bot"],
     );
     assert.ok(lines.includes(`${" ".repeat(16)}A) Keep it  (recommended)`));
-    assert.ok(lines.includes(`    question cgwalters-forge/tracker#21  PVTI_q  [-, ?]`));
+    assert.ok(lines.includes(`    question jmarrero-forge/tracker#21  PVTI_q  [-, ?]`));
     assert.ok(lines.includes("item     draft item  PVTI_gist  [-, 12h]"));
     assert.ok(lines.some((l) => l.endsWith("BOT BUG")));
     assert.ok(text.endsWith("\n"));

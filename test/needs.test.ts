@@ -50,10 +50,10 @@ describe("representative operator asks", () => {
     { name: "current explicit review request", entry: base, action: "review" },
     { name: "draft request", entry: { ...base, pr: { ...reviewPr, draft: true } } },
     // The bot asks for his review on forge drafts: that is a concrete ask.
-    { name: "forge draft request", entry: { ...base, pr: pr("cgwalters-forge", "widget", 3) }, action: "review" },
-    { name: "forge draft request, approved", entry: { ...base, pr: pr("cgwalters-forge", "widget", 3), verdict: { state: "approved" } } },
-    { name: "forge draft request, changes requested", entry: { ...base, pr: pr("cgwalters-forge", "widget", 3), verdict: { state: "changes-requested" } } },
-    { name: "forge draft without a request", entry: { ...base, pr: pr("cgwalters-forge", "widget", 3), wait: { reasons: ["updated"], onBot: false } } },
+    { name: "forge draft request", entry: { ...base, pr: pr("jmarrero-forge", "widget", 3) }, action: "review" },
+    { name: "forge draft request, approved", entry: { ...base, pr: pr("jmarrero-forge", "widget", 3), verdict: { state: "approved" } } },
+    { name: "forge draft request, changes requested", entry: { ...base, pr: pr("jmarrero-forge", "widget", 3), verdict: { state: "changes-requested" } } },
+    { name: "forge draft without a request", entry: { ...base, pr: pr("jmarrero-forge", "widget", 3), wait: { reasons: ["updated"], onBot: false } } },
     { name: "approved current head", entry: { ...base, verdict: { state: "approved" } } },
     { name: "comment reviewed current head", entry: { ...base, wait: { ...base.wait!, reviewedCurrentHead: true } } },
     { name: "changes requested current head", entry: { ...base, verdict: { state: "changes-requested" } } },
@@ -186,12 +186,12 @@ describe("buildNeeds", () => {
   });
 
   it("lists a forge draft requesting his review once, from its read request", () => {
-    const forge = pr("cgwalters-forge", "bootc", 1);
+    const forge = pr("jmarrero-forge", "bootc", 1);
     const wait: PrWait = { reasons: ["review-requested"], onBot: false, askedAt: "2026-10-03T00:00:00Z" };
-    const verdicts = new Map<string, Verdict>([["cgwalters-forge/bootc#1", { state: "none" }]]);
+    const verdicts = new Map<string, Verdict>([["jmarrero-forge/bootc#1", { state: "none" }]]);
     const entries = buildEntries([], [forge], verdicts, true, new Set(), { others: [{ pr: forge, wait, verdict: { state: "none" } }] });
     const needs = buildNeeds({ entries });
-    assert.deepEqual(rows(needs), [["pr:cgwalters-forge/bootc#1", "review"]]);
+    assert.deepEqual(rows(needs), [["pr:jmarrero-forge/bootc#1", "review"]]);
     assert.equal(needs[0]?.since, "2026-10-03T00:00:00Z");
   });
 
