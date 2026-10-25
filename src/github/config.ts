@@ -178,7 +178,7 @@ export const RECENT_COMMENTS = 5;
 export const NEWS_REPOS: readonly string[] = [
   "jmarrero-forge/homegit",
   "bootc-dev/jmarrero-devspace-sandbox",
-  "jmarrero-forge/review",
+  "jmarrero/review",
   "jmarrero-forge/tracker",
   "jmarrero/atomic-setup",
 ];
